@@ -2,6 +2,10 @@
 
 Collection of utility interfaces for use with referencing of objects. Used heavily in [go-v8](https://github.com/behrsin/go-v8).
 
+## Documentation
+
+Documentation is available on [Godoc](https://godoc.org/github.com/behrsin/go-refutils).
+
 ## Usage
 
 ```
