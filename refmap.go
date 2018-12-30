@@ -46,33 +46,37 @@ func (o *RefHolder) SetID(name string, i id) {
 
 type refMapEntry struct {
 	pointer uintptr
-	ref     unsafe.Pointer
+	ref     Ref
+	refType reflect.Type
 	count   uint32
 }
 
+// RefMap provides a thread-safe strong and weak reference map for objects implementing Ref (GetID and SetID for uint32
+// IDs). The RefObject struct can be inherited by your structs to implement the required maps and mechanisms for RefMap
+// to work. RefObject implemented the Ref interface.
+//
+// RefMap will set a monotonically increasing identifier in the Ref that it is provided by Ref and Unref. Once an object
+// is referenced using Ref, it will remain referenced within the map until it is dereferenced using Unref.
 type RefMap struct {
 	name    string
 	entries map[id]*refMapEntry
-	refType reflect.Type
 	nextId  id
 	mutex   sync.RWMutex
 	strong  bool
 }
 
-func NewRefMap(name string, RefType reflect.Type) *RefMap {
+func NewRefMap(name string) *RefMap {
 	return &RefMap{
 		name:    name,
 		entries: map[id]*refMapEntry{},
-		refType: RefType,
 		strong:  true,
 	}
 }
 
-func NewWeakRefMap(name string, RefType reflect.Type) *RefMap {
+func NewWeakRefMap(name string) *RefMap {
 	return &RefMap{
 		name:    name,
 		entries: map[id]*refMapEntry{},
-		refType: RefType,
 		strong:  false,
 	}
 }
@@ -84,7 +88,7 @@ func (rm *RefMap) Refs() map[id]Ref {
 	refs := map[id]Ref{}
 	for i, entry := range rm.entries {
 		// nolint: vet
-		refs[i] = reflect.NewAt(rm.refType.Elem(), unsafe.Pointer(entry.pointer)).Interface().(Ref)
+		refs[i] = reflect.NewAt(entry.refType, unsafe.Pointer(entry.pointer)).Interface().(Ref)
 	}
 	return refs
 }
@@ -100,8 +104,10 @@ func (rm *RefMap) Get(id id) Ref {
 	rm.mutex.RLock()
 	defer rm.mutex.RUnlock()
 
+	entry := rm.entries[id]
+
 	// nolint: vet
-	return reflect.NewAt(rm.refType.Elem(), unsafe.Pointer(rm.entries[id].pointer)).Interface().(Ref)
+	return reflect.NewAt(entry.refType, unsafe.Pointer(entry.pointer)).Interface().(Ref)
 }
 
 func (rm *RefMap) Ref(r Ref) id {
@@ -116,11 +122,12 @@ func (rm *RefMap) Ref(r Ref) id {
 		r.SetID(rm.name, id)
 	}
 	if e = rm.entries[id]; e == nil {
+		refType := reflect.TypeOf(r).Elem()
 		if rm.strong {
-			e = &refMapEntry{reflect.ValueOf(r).Pointer(), unsafe.Pointer(reflect.ValueOf(r).Pointer()), 0}
+			e = &refMapEntry{reflect.ValueOf(r).Pointer(), r, refType, 0}
 			rm.entries[id] = e
 		} else {
-			e = &refMapEntry{reflect.ValueOf(r).Pointer(), nil, 0}
+			e = &refMapEntry{reflect.ValueOf(r).Pointer(), nil, refType, 0}
 			rm.entries[id] = e
 		}
 	}
@@ -150,6 +157,6 @@ func (rm *RefMap) Release(r Ref) {
 	}
 }
 
-func (rm *RefMap) Clear() {
-	rm.entries = nil
+func (rm *RefMap) ReleaseAll() {
+	rm.entries = map[id]*refMapEntry{}
 }
