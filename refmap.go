@@ -15,12 +15,12 @@ type Ref interface {
 
 type RefHolder struct {
 	ids      map[string]ID
-	idsMutex sync.Mutex
+	idsMutex sync.RWMutex
 }
 
 func (o *RefHolder) getID(name string) ID {
-	o.idsMutex.Lock()
-	defer o.idsMutex.Unlock()
+	o.idsMutex.RLock()
+	defer o.idsMutex.RUnlock()
 
 	if o.ids == nil {
 		return 0
