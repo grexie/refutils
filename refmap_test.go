@@ -62,19 +62,19 @@ func TestMultipleReferences(t *testing.T) {
 	id3 := r1.Ref(s2)
 	id4 := r2.Ref(s2)
 
-	if s1.GetID("test1") != id1 {
+	if s1.getID("test1") != id1 {
 		t.Error("ids don't match")
 	}
 
-	if s1.GetID("test2") != id2 {
+	if s1.getID("test2") != id2 {
 		t.Error("ids don't match")
 	}
 
-	if s2.GetID("test1") != id3 {
+	if s2.getID("test1") != id3 {
 		t.Error("ids don't match")
 	}
 
-	if s2.GetID("test2") != id4 {
+	if s2.getID("test2") != id4 {
 		t.Error("ids don't match")
 	}
 }
