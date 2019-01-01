@@ -18,10 +18,16 @@ type RefMutex struct {
 }
 
 func (rm *RefMutex) Lock() {
+	rm.refMutex.Lock()
+	defer rm.refMutex.Unlock()
+
 	rm.mutex.Lock()
 }
 
 func (rm *RefMutex) Unlock() {
+	rm.refMutex.Lock()
+	defer rm.refMutex.Unlock()
+
 	rm.mutex.Unlock()
 }
 
