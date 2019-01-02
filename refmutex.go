@@ -18,16 +18,10 @@ type RefMutex struct {
 }
 
 func (rm *RefMutex) Lock() {
-	rm.refMutex.Lock()
-	defer rm.refMutex.Unlock()
-
 	rm.mutex.Lock()
 }
 
 func (rm *RefMutex) Unlock() {
-	rm.refMutex.Lock()
-	defer rm.refMutex.Unlock()
-
 	rm.mutex.Unlock()
 }
 
@@ -46,7 +40,7 @@ func (rm *RefMutex) RefUnlock() {
 	defer rm.refMutex.Unlock()
 
 	if rm.refCount == 0 {
-		panic("ref-unlocked of ref-unlocked mutex")
+		panic("ref-unlock of ref-unlocked mutex")
 	}
 
 	rm.refCount--
