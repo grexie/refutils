@@ -10,7 +10,7 @@ Documentation is available on [Godoc](https://godoc.org/github.com/behrsin/go-re
 
 ```
 import (
-  refutils "github.com/behrsin/go-refutils"
+  refutils "github.com/grexie/refutils"
 )
 ```
 
