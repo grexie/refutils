@@ -1,3 +1,3 @@
-module github.com/grexie/refutils v0.1.0
+module github.com/grexie/refutils
 
 go 1.19
